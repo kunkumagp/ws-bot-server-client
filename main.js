@@ -7,6 +7,8 @@ const server = new webSocket.Server({ port: 8080 });
 
 let socket = null;
 
+
+
 server.on("connection", (sc) => {
     console.log("Client connected.");
 
@@ -30,6 +32,12 @@ server.on("connection", (sc) => {
 });
 
 
+
+
+
+
+
+
 // Create an instance of express
 const app = express();
 
@@ -42,7 +50,7 @@ app.use(express.json());
 const getAuthentication = () => {
     // setFlashNotification("Authenticating....", 0);
     console.log("Authenticating....");
-    // ws.send(JSON.stringify({ authorize: "iVOpdm24hBhw3JI" }));
+    ws.send(JSON.stringify({ authorize: "iVOpdm24hBhw3JI" }));
 
     // setInterval(() => {
     //     ws.send(JSON.stringify({ authorize: "iVOpdm24hBhw3JI" }));
@@ -85,3 +93,4 @@ app.post('/data', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
