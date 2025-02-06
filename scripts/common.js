@@ -31,3 +31,19 @@ marketArray.forEach((item) => {
     option.textContent = item.name; // Set the display text
     marketSelectElement.appendChild(option); // Append to the <select>
 });
+
+
+const authenticateButton = document.getElementById("authenticateButton");
+
+
+let initianAccountBalance = 0;
+let amountPutForTrading = 0;
+let amountPercentage = 0.1;
+let stake = 0.35;
+let updatedAccountBalance = 0;
+let netProfit = 0;
+
+
+function setAccountInfo(elementId, message) {
+    document.getElementById(elementId).innerHTML = message;
+}
