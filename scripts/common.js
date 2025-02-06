@@ -34,6 +34,7 @@ marketArray.forEach((item) => {
 
 
 const authenticateButton = document.getElementById("authenticateButton");
+const scriptRun = document.getElementById("scriptRun");
 
 
 let initianAccountBalance = 0;
@@ -42,6 +43,7 @@ let amountPercentage = 0.1;
 let stake = 0.35;
 let updatedAccountBalance = 0;
 let netProfit = 0;
+let market = marketSelectElement.value;
 
 
 function setAccountInfo(elementId, message) {
