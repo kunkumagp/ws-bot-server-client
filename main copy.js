@@ -10,8 +10,6 @@ let socket = null;
 let isTradeRunning = false;
 let tradeType = "even";
 
-let tradeProposal = null;
-
 // let netProfit = 0;
 let tickCount = 1;
 
@@ -21,15 +19,7 @@ let varObject = {
     amountPercentage: 0.1,
     updatedAccountBalance: 0,
     stake: 0.35,
-    market: null,
-    totalTradeCount: 0,
-    lastTradeDetails: {
-        id: null,
-        type: null,
-        market: null,
-        stake: null,
-        profit: null
-    }
+    market: null
 };
 
 
@@ -88,29 +78,46 @@ ws.onmessage = function (event) {
     }
 
     if(wsResponse.msg_type == "proposal"){
-        tradeProposal = wsResponse;
         if(!isTradeRunning){
             makeTheTrade();
         }
-    }
-
-    if(wsResponse.msg_type == "buy"){
-
-        if ( wsResponse.buy == undefined || wsResponse.buy.contract_id == undefined) {
-            // placeTrade();
-        } else {
-            isTradeRunning = true;
-            openTradeDataProcess(wsResponse);
-        }
-
-        socket.send(JSON.stringify({msg_type: 'trade_open',data: varObject}));
-
+        // setInitData(wsResponse);
+        // socket.send(JSON.stringify({msg_type: 'authorize',data: varObject}));
     }
 
     
 };
 
 
+
+
+
+// // Define a simple route
+// app.get('/', (req, res) => {
+// });
+
+
+// app.get('/greet/:name', (req, res) => {
+//     const name = req.params.name;
+//     res.send(`Hello, ${name}!`);
+//   });
+
+// // Define a route with a parameter
+// app.get('/authenticate', (req, res) => {
+//     getAuthentication();
+//     res.send(`Authenticating...,`);
+// });
+
+// // Define a POST route
+// app.post('/data', (req, res) => {
+//   const data = req.body;
+//   res.json({ message: 'Data received', data });
+// });
+
+// // Start the server
+// app.listen(PORT, () => {
+//   console.log(`Server is running on http://localhost:${PORT}`);
+// });
 
 
 
@@ -182,37 +189,6 @@ const placeTrade = (result = null) => {
         // Send the trade request to the WebSocket
         ws.send(JSON.stringify(tradeRequest));
     }
-};
-
-const makeTheTrade = () => {
-    if ( tradeProposal.proposal == undefined || tradeProposal.proposal.id == undefined) {
-        isTradeRunning = false;
-        // webSocketConnectionStart();
-        console.log('Connection has colsed.');
-    } else {
-        buyRequest = {
-            buy: tradeProposal.proposal.id,
-            price: tradeProposal.proposal.ask_price,
-        };
-        ws.send(JSON.stringify(buyRequest));
-    }
-};
-
-const openTradeDataProcess = (data) => {
-    varObject.lastTradeDetails.id = data.buy.contract_id;
-    varObject.totalTradeCount = varObject.totalTradeCount + 1;
-
-    const shortcodeArray = data.buy.shortcode.split("_");
-
-    if (shortcodeArray[0] == "DIGITEVEN") {
-        varObject.lastTradeDetails.type = "Even";
-    } else if (shortcodeArray[0] ==  "DIGITODD") {
-        varObject.lastTradeDetails.type = "Odd";
-    }
-
-    varObject.lastTradeDetails.market = shortcodeArray[1] + "_" + shortcodeArray[2];
-    varObject.lastTradeDetails.stake = Number(data.buy.buy_price);
-
 };
 
 

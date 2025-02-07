@@ -14,7 +14,6 @@ accounts.forEach((item) => {
 });
 
 
-
 const marketArray = [
     { value: "R_10", name: "Volatility 10 Index" },
     { value: "R_25", name: "Volatility 25 Index" },
@@ -37,13 +36,22 @@ const authenticateButton = document.getElementById("authenticateButton");
 const scriptRun = document.getElementById("scriptRun");
 
 
-let initianAccountBalance = 0;
-let amountPutForTrading = 0;
-let amountPercentage = 0.1;
-let stake = 0.35;
-let updatedAccountBalance = 0;
-let netProfit = 0;
+// let initianAccountBalance = 0;
+// let amountPutForTrading = 0;
+// let amountPercentage = 0.1;
+// let stake = 0.35;
+// let updatedAccountBalance = 0;
+// let netProfit = 0;
+
+
+
+let apiToken = accountSelectElement.value;
 let market = marketSelectElement.value;
+
+
+accountSelectElement.addEventListener("change", () => {
+    apiToken = accountSelectElement.value;
+});
 
 
 function setAccountInfo(elementId, message) {

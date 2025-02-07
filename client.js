@@ -10,20 +10,21 @@ clientSocket.onmessage = function(event) {
 
     let eventDataObject = JSON.parse(event.data);
 
-    console.log('event : ', eventDataObject);
+    // console.log('event : ', eventDataObject);
 
     if(eventDataObject.msg_type == "authorize"){
-        setInitData(JSON.parse(event.data));
+        setInitData(eventDataObject);
     }
 
     if(eventDataObject.msg_type == "proposal"){
         console.log("Proposal is getting ready for to open a trade... please wait.");
     }
-    
 
-//  console.log(JSON.parse(event.data));
-    // 
-    // console.log("Message received: " + event.data);
+    if(eventDataObject.msg_type == "trade_open"){
+        // console.log("eventDataObject: ", eventDataObject);
+        setResultNotification(eventDataObject.data.lastTradeDetails);
+    }
+
     // document.getElementById("messages").innerHTML += "<p>Server: " + event.data + "</p>";
 };
 
@@ -38,8 +39,15 @@ clientSocket.onerror = function(error) {
 };
 
 function authenticate() {
+    let dataObj = {
+        type: 'auth', 
+        params:{
+            apiToken: apiToken
+        }
+    };
+
     const message = "Authenticating...!";
-    clientSocket.send(JSON.stringify({type: 'auth'}));
+    clientSocket.send(JSON.stringify(dataObj));
     console.log("Message sent: " + message);
 //  document.getElementById("messages").innerHTML += "<p>You: " + message + "</p>";
 }
@@ -51,11 +59,6 @@ function botStart() {
     let dataObj = {
         type: 'start', 
         params:{
-            initianAccountBalance: initianAccountBalance,
-            amountPutForTrading: amountPutForTrading,
-            stake: stake,
-            updatedAccountBalance: updatedAccountBalance,
-            netProfit: netProfit,
             market: market
         }
     };
@@ -64,25 +67,29 @@ function botStart() {
 }
 
 function setInitData(data) {
-    console.log(data);
-
     if(data.msg_type == "authorize"){
+        console.log(data);
 
         authenticateButton.innerHTML = "Authenticated. Ready to trade.";
         authenticateButton.disabled = true;
 
-
-        initianAccountBalance = Number(data.authorize.balance);
+        let initianAccountBalance = Number(data.data.initianAccountBalance);
         setAccountInfo("initialAccountBalance", `$ ${initianAccountBalance}`);
 
-        amountPutForTrading = Number((initianAccountBalance * (amountPercentage / 100)).toFixed(2));
+        let amountPutForTrading = Number((data.data.initianAccountBalance * (data.data.amountPercentage / 100)).toFixed(2));
         setAccountInfo("amountPutForTrading", `$ ${amountPutForTrading}`);
-        stake = Number(amountPutForTrading);
+        stake = Number(data.data.amountPutForTrading);
 
-        updatedAccountBalance = Number(initianAccountBalance);
+        let updatedAccountBalance = Number(data.data.initianAccountBalance);
 
         setAccountInfo("updatedAccountBalance", `$ ${updatedAccountBalance}`);
-        setAccountInfo("netProfit", `$ ${netProfit}`);
+        setAccountInfo("netProfit", `$ 0`);
 
     }
+}
+
+function setResultNotification(lastTradeDetails){
+
+    console.log('lastTradeDetails: ', lastTradeDetails);
+
 }
