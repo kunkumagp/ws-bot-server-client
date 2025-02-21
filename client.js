@@ -23,6 +23,11 @@ clientSocket.onmessage = function(event) {
     if(eventDataObject.msg_type == "trade_open"){
         // console.log("eventDataObject: ", eventDataObject);
         setResultNotification(eventDataObject.data.lastTradeDetails);
+
+
+        setTimeout(() => {
+            // fetchTradeDetails(lastTradeId);
+        }, 500);
     }
 
     // document.getElementById("messages").innerHTML += "<p>Server: " + event.data + "</p>";
@@ -90,6 +95,50 @@ function setInitData(data) {
 
 function setResultNotification(lastTradeDetails){
 
-    console.log('lastTradeDetails: ', lastTradeDetails);
+    const marketObj = marketArray.find((item) => item.value === lastTradeDetails.market);
+    const element = document.getElementById(lastTradeDetails.id);
+
+    if (element) {
+        let newClassName = null;
+        let status = null;
+
+        if (profit >= 0) {
+            newClassName = "green";
+            status = "WIN";
+        } else if (profit < 0) {
+            newClassName = "red";
+            status = "LOSS";
+        }
+
+        const profitElement = document.getElementById(lastTradeDetails.id + "-profit");
+        const statusElement = document.getElementById(lastTradeDetails.id + "-status");
+
+        if (profitElement) {
+            const spanElement = profitElement.querySelector("span"); // Select the <span> inside the parent element
+            if (spanElement) {
+                spanElement.className = newClassName; // Set the class
+                spanElement.innerHTML = profit; // Set the inner HTML
+            } else {
+                console.log("No <span> element found inside the parent element.");
+            }
+        } else {
+            console.log("Parent element not found.");
+        }
+
+        if (statusElement) {
+            const spanElement = statusElement.querySelector("span"); // Select the <span> inside the parent element
+            if (spanElement) {
+                spanElement.className = newClassName; // Set the class
+                spanElement.innerHTML = status; // Set the inner HTML
+            } else {
+                console.log("No <span> element found inside the parent element.");
+            }
+        } else {
+            console.log("Parent element not found.");
+        }
+    } else {
+        $(".result-notification").prepend(`<span class="stake-info" id="${lastTradeDetails.id}"><span class="detailt"><span>Contract ID : </span><span class="contract-info">${lastTradeDetails.id}</span></span><span class="detailt"><span>Market : </span><span class="contract-info">${marketObj.name}</span></span><span class="detailt"><span>Type : </span><span class="contract-info">${lastTradeDetails.type}</span></span><span class="detailt"><span>Stake : </span><span class="contract-info">${lastTradeDetails.stake}</span></span><span class="detailt"><span>Profit / Loss Amount : </span><span class="contract-info" id="${lastTradeDetails.id}-profit"><span class="">-</span></span></span><span class="detailt"><span>Status : </span><span class="contract-info" id="${lastTradeDetails.id}-status"><span class="">-</span></span></span></span>`);
+    }
+
 
 }

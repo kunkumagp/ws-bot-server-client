@@ -7,7 +7,7 @@ const server = new webSocket.Server({ port: 8080 });
 
 let socket = null;
 
-let isTradeRunning = false;
+let isTradeRunning = false, automation = false;
 let tradeType = "even";
 
 let tradeProposal = null;
@@ -103,7 +103,17 @@ ws.onmessage = function (event) {
             openTradeDataProcess(wsResponse);
         }
 
+        automation = true;
         socket.send(JSON.stringify({msg_type: 'trade_open',data: varObject}));
+
+        // setTimeout(() => {
+        //     fetchTradeDetails(lastTradeId);
+        // }, 500);
+
+    }
+
+    if (wsResponse.msg_type === "proposal_open_contract") {
+        console.log('wsResponse: ', wsResponse);
 
     }
 
@@ -225,3 +235,16 @@ function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+const fetchTradeDetails = (contractId) => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        console.error("WebSocket is not open.");
+        return;
+    }
+
+    const contractDetailsRequest = {
+        proposal_open_contract: 1,
+        contract_id: contractId,
+    };
+
+    ws.send(JSON.stringify(contractDetailsRequest));
+};
