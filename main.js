@@ -1,5 +1,6 @@
 const express = require('express');
 const webSocket = require("ws");
+const cliProgress = require("cli-progress");
 
 let ws = new webSocket("wss://ws.binaryws.com/websockets/v3?app_id=1089");
 
@@ -16,6 +17,7 @@ let tradeType = "even";
 let tradeProposal = null;
 let tickCount = 1;
 let stopTimer = false;
+let timerRef;
 
 let varObject = {
     initianAccountBalance: 0,
@@ -93,7 +95,7 @@ ws.onopen = function () {
 
 };
 
-ws.onmessage = function (event) {
+ws.onmessage = async function (event) {
     wsResponse = JSON.parse(event.data);
     // console.log("wsResponse: ", wsResponse);
 
@@ -128,12 +130,11 @@ ws.onmessage = function (event) {
     }
 
     if (wsResponse.msg_type === "proposal_open_contract") {
-        // console.log('wsResponse: ', wsResponse);
-
         if (wsResponse.proposal_open_contract.contract_id === varObject.lastTradeDetails.id) {
             const contract = wsResponse.proposal_open_contract;
 
             if (contract.is_sold){
+
                 const profit = contract.profit;
                 const result = profit > 0 ? "Win" : "Loss";
 
@@ -143,11 +144,20 @@ ws.onmessage = function (event) {
 
                 updateReturnDataObject(profit);
 
+                console.log('------------------');
+                if(profit > 0){
+                    console.log(`\x1b[32mWin\x1b[0m | \x1b[33mProfit:\x1b[0m \x1b[32m${profit}\x1b[0m`);
+                } else {
+                    console.log(`\x1b[31mLoss\x1b[0m | \x1b[33mProfit:\x1b[0m \x1b[31m${profit}\x1b[0m`);
+                    // console.log(`${result} | Profit: ${profit} `);
+                }
+                console.log('------------------');
 
                 if (varObject.currentLossAmount < 0) {
                     if(varObject.lostCountInRow >= 2){
                         // let newTime = (getRandomNumber(1, 2) * 60000 );
-                        let newTime = (getRandomNumber(10, 20) * 1000);
+                        // let newTime = (getRandomNumber(10, 20) * 1000);
+                        let newTime = (getRandomNumber(1, 3) * 1000);
                         setTimer(newTime);
                         setTimeout(() => {
                             isTradeRunning = false;
@@ -159,8 +169,8 @@ ws.onmessage = function (event) {
                     }
                 } else {
                     if (varObject.currentProfitAmount >= varObject.targetAmount) {
-                        let newTime = (getRandomNumber(2, 3) * 60000 );
-                        // let newTime = (getRandomNumber(2, 3) * 1000 );
+                        // let newTime = (getRandomNumber(2, 3) * 60000 );
+                        let newTime = (getRandomNumber(1, 3) * 1000 );
                         setTimer(newTime);
                         setTimeout(() => {
                             isTradeRunning = false;
@@ -173,17 +183,94 @@ ws.onmessage = function (event) {
 
                 }
                 socket.send(JSON.stringify({msg_type: 'trade_closed',data: varObject}));
-
-
             } else {
-                setTimeout(() => {
-                    socket.send(JSON.stringify({msg_type: 'tick_counter',data: {tick_count: contract.tick_count, length: contract.tick_stream.length}}));
-                    fetchTradeDetails(varObject.lastTradeDetails.id);
-                }, 1000);
-            }
-        }
 
+                let expiryInSeconds = getSecondsRemaining(contract.date_expiry);
+                if(expiryInSeconds > 0){
+                    showProgressBar(expiryInSeconds, 'This trade will closed in ');
+                
+                    await showProgressBar(expiryInSeconds, 'This trade will closed in ');
+    
+                    setTimeout(() => {
+                        fetchTradeDetails(varObject.lastTradeDetails.id);
+                    }, 1000);
+                }
+                
+            }
+           
+        }
     }
+
+    // if (wsResponse.msg_type === "proposal_open_contract") {
+    //     // console.log('wsResponse: ', wsResponse);
+
+        
+
+    //     if (wsResponse.proposal_open_contract.contract_id === varObject.lastTradeDetails.id) {
+    //         const contract = wsResponse.proposal_open_contract;
+
+    //     //     showProgressBar(contract.tick_stream.length);
+
+    //     // setTimeout(() => {
+            
+    //     // }, contract.tick_stream.length);
+
+    //         if (contract.is_sold){
+    //             const profit = contract.profit;
+    //             const result = profit > 0 ? "Win" : "Loss";
+
+    //             // setInfo(contract, profit);
+    //             stakeChange(result);
+    //             varObject.lastTradeDetails.profit = profit;
+
+    //             updateReturnDataObject(profit);
+
+    //             console.log('profit: ', profit);
+    //             console.log('result: ', result);
+    //             console.log('------------------');
+
+    //             if (varObject.currentLossAmount < 0) {
+    //                 if(varObject.lostCountInRow >= 2){
+    //                     // let newTime = (getRandomNumber(1, 2) * 60000 );
+    //                     // let newTime = (getRandomNumber(10, 20) * 1000);
+    //                     let newTime = (getRandomNumber(1, 3) * 1000);
+    //                     setTimer(newTime);
+    //                     setTimeout(() => {
+    //                         isTradeRunning = false;
+    //                         placeTrade();
+    //                     }, newTime);
+    //                 } else {
+    //                     isTradeRunning = false;
+    //                     placeTrade();
+    //                 }
+    //             } else {
+    //                 if (varObject.currentProfitAmount >= varObject.targetAmount) {
+    //                     // let newTime = (getRandomNumber(2, 3) * 60000 );
+    //                     let newTime = (getRandomNumber(1, 3) * 1000 );
+    //                     setTimer(newTime);
+    //                     setTimeout(() => {
+    //                         isTradeRunning = false;
+    //                         botRestart();
+    //                     }, newTime);
+    //                 } else {
+    //                     isTradeRunning = false;
+    //                     placeTrade();
+    //                 }
+
+    //             }
+    //             socket.send(JSON.stringify({msg_type: 'trade_closed',data: varObject}));
+
+
+    //         } else {
+                
+    //             setTimeout(() => {
+    //                 socket.send(JSON.stringify({msg_type: 'tick_counter',data: {tick_count: contract.tick_count, length: contract.tick_stream.length}}));
+    //                 fetchTradeDetails(varObject.lastTradeDetails.id);
+    //             }, 1000);
+    //         }
+    //     }
+
+    // }
 
     
 };
@@ -219,6 +306,10 @@ const botStop = () => {
     botStartStatus = false;
     botStopStatus = true;
     isTradeRunning = false;
+
+    stopTimer = true;
+    clearInterval(timerRef);
+
     socket.send(JSON.stringify({msg_type: 'flash_message',data: {message: ``, time: 0}}));
 };
 
@@ -240,25 +331,28 @@ function setInitData(data) {
 
 
 function setTimer(time) {
-    if(!botStopStatus){
+    if (!botStopStatus) {
         let timeleft = time / 1000; // Convert milliseconds to seconds
+        
         if (!isTradeRunning && botStartStatus) {
             timeleft = 0;
             stopTimer = true;
+            socket.send(JSON.stringify({ msg_type: 'flash_message', data: { message: ``, time: 0 } }));
         }
-
-        let timer = setInterval(function () {
-            if (timeleft <= 0) {
-                clearInterval(timer);
-                socket.send(JSON.stringify({msg_type: 'flash_message',data: {message: ``, time: 0}}));
-            } else if (timeleft > 0 && !stopTimer) {
+        
+        clearInterval(timerRef); // Clear any existing timer before starting a new one
+        
+        timerRef = setInterval(function () {
+            if (timeleft <= 0 || stopTimer) {
+                clearInterval(timerRef);
+                socket.send(JSON.stringify({ msg_type: 'flash_message', data: { message: ``, time: 0 } }));
+            } else {
                 let formattedTime = formatTime(timeleft);
-                socket.send(JSON.stringify({msg_type: 'flash_message',data: {message: `Bot will run again in <span class="number">${formattedTime}</span>.`, time: 0}}));
+                socket.send(JSON.stringify({ msg_type: 'flash_message', data: { message: `Bot will run again in <span class="number">${formattedTime}</span>.`, time: 0 } }));
             }
             timeleft -= 1;
         }, 1000);
     }
-
 }
 
 
@@ -435,3 +529,35 @@ const updateReturnDataObject = (lastTradeProfitValue) => {
 
 
 };
+
+const showProgressBar = (seconds, message) => {
+    return new Promise((resolve) => {
+      const bar = new cliProgress.SingleBar(
+        {
+          format: `⏳ ${message} [{bar}] {percentage}% | ETA: {eta}s`,
+          hideCursor: true,
+          clearOnComplete: true,
+        },
+        cliProgress.Presets.shades_classic
+      );
+  
+      bar.start(seconds, 0);
+  
+      let counter = 0;
+      const interval = setInterval(() => {
+        counter++;
+        bar.update(counter);
+  
+        if (counter >= seconds) {
+          clearInterval(interval);
+          bar.stop();
+          resolve();
+        }
+      }, 1000);
+    });
+  };
+
+  function getSecondsRemaining(expiryTimestamp) {
+    const currentTimestamp = Math.floor(Date.now() / 1000); // Get current time in seconds
+    return expiryTimestamp - currentTimestamp;
+}
