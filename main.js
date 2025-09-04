@@ -53,6 +53,8 @@ server.on("connection", (sc) => {
     sc.on("message", (message) => {
         let res = JSON.parse(message);
 
+        console.log('Received message:', res);
+
         if (res.type === 'auth') {
             getAuthentication(res.params);
         }
@@ -97,109 +99,116 @@ ws.onopen = function () {
 
 ws.onmessage = async function (event) {
     wsResponse = JSON.parse(event.data);
-    // console.log("wsResponse: ", wsResponse);
+    console.log("wsResponse: ", wsResponse);
 
-    if(wsResponse.msg_type == "authorize"){
-        setInitData(wsResponse);
-        socket.send(JSON.stringify({msg_type: 'authorize',data: varObject}));
-    }
+    // if(wsResponse.msg_type == "authorize"){
+    //     setInitData(wsResponse);
+    //     socket.send(JSON.stringify({msg_type: 'authorize',data: varObject}));
+    // }
 
-    if(wsResponse.msg_type == "proposal"){
-        tradeProposal = wsResponse;
-        if(!isTradeRunning && botStartStatus){
-            makeTheTrade();
-        }
-    }
+    // if(wsResponse.msg_type == "proposal"){
+    //     tradeProposal = wsResponse;
+    //     if(!isTradeRunning && botStartStatus){
+    //         makeTheTrade();
+    //     }
+    // }
 
-    if(wsResponse.msg_type == "buy"){
+    // if(wsResponse.msg_type == "buy"){
 
-        if ( wsResponse.buy == undefined || wsResponse.buy.contract_id == undefined) {
-            // placeTrade();
-        } else {
-            isTradeRunning = true;
-            openTradeDataProcess(wsResponse);
-        }
+    //     if ( wsResponse.buy == undefined || wsResponse.buy.contract_id == undefined) {
+    //         // placeTrade();
+    //     } else {
+    //         isTradeRunning = true;
+    //         openTradeDataProcess(wsResponse);
+    //     }
 
-        automation = true;
+    //     automation = true;
 
-        setTimeout(() => {
-            fetchTradeDetails(varObject.lastTradeDetails.id);
-        }, 500);
-        socket.send(JSON.stringify({msg_type: 'trade_open',data: varObject}));
+    //     setTimeout(() => {
+    //         fetchTradeDetails(varObject.lastTradeDetails.id);
+    //     }, 500);
+    //     socket.send(JSON.stringify({msg_type: 'trade_open',data: varObject}));
 
-    }
+    // }
 
-    if (wsResponse.msg_type === "proposal_open_contract") {
-        if (wsResponse.proposal_open_contract.contract_id === varObject.lastTradeDetails.id) {
-            const contract = wsResponse.proposal_open_contract;
+    // if (wsResponse.msg_type === "proposal_open_contract") {
+    //     if (wsResponse.proposal_open_contract?.contract_id === varObject.lastTradeDetails.id) {
+    //         const contract = wsResponse.proposal_open_contract;
 
-            if (contract.is_sold){
+    //         if (contract.is_sold){
 
-                const profit = contract.profit;
-                const result = profit > 0 ? "Win" : "Loss";
+    //             const profit = contract.profit;
+    //             const result = profit > 0 ? "Win" : "Loss";
 
-                // setInfo(contract, profit);
-                stakeChange(result);
-                varObject.lastTradeDetails.profit = profit;
+    //             // setInfo(contract, profit);
+    //             stakeChange(result);
+    //             varObject.lastTradeDetails.profit = profit;
 
-                updateReturnDataObject(profit);
+    //             updateReturnDataObject(profit);
 
-                console.log('------------------');
-                if(profit > 0){
-                    console.log(`\x1b[32mWin\x1b[0m | \x1b[33mProfit:\x1b[0m \x1b[32m${profit}\x1b[0m`);
-                } else {
-                    console.log(`\x1b[31mLoss\x1b[0m | \x1b[33mProfit:\x1b[0m \x1b[31m${profit}\x1b[0m`);
-                    // console.log(`${result} | Profit: ${profit} `);
-                }
-                console.log('------------------');
+    //             console.log('------------------');
+    //             if(profit > 0){
+    //                 console.log(`\x1b[32mWin\x1b[0m | \x1b[33mProfit:\x1b[0m \x1b[32m${profit}\x1b[0m`);
+    //             } else {
+    //                 console.log(`\x1b[31mLoss\x1b[0m | \x1b[33mProfit:\x1b[0m \x1b[31m${profit}\x1b[0m`);
+    //                 // console.log(`${result} | Profit: ${profit} `);
+    //             }
+    //             console.log('------------------');
 
-                if (varObject.currentLossAmount < 0) {
-                    if(varObject.lostCountInRow >= 2){
-                        // let newTime = (getRandomNumber(1, 2) * 60000 );
-                        // let newTime = (getRandomNumber(10, 20) * 1000);
-                        let newTime = (getRandomNumber(1, 3) * 1000);
-                        setTimer(newTime);
-                        setTimeout(() => {
-                            isTradeRunning = false;
-                            placeTrade();
-                        }, newTime);
-                    } else {
-                        isTradeRunning = false;
-                        placeTrade();
-                    }
-                } else {
-                    if (varObject.currentProfitAmount >= varObject.targetAmount) {
-                        // let newTime = (getRandomNumber(2, 3) * 60000 );
-                        let newTime = (getRandomNumber(1, 3) * 1000 );
-                        setTimer(newTime);
-                        setTimeout(() => {
-                            isTradeRunning = false;
-                            botRestart();
-                        }, newTime);
-                    } else {
-                        isTradeRunning = false;
-                        placeTrade();
-                    }
+    //             if (varObject.currentLossAmount < 0) {
+    //                 if(varObject.lostCountInRow >= 2){
+    //                     // let newTime = (getRandomNumber(1, 2) * 60000 );
+    //                     // let newTime = (getRandomNumber(10, 20) * 1000);
+    //                     let newTime = (getRandomNumber(1, 3) * 1000);
+    //                     setTimer(newTime);
+    //                     setTimeout(() => {
+    //                         isTradeRunning = false;
+    //                         placeTrade();
+    //                     }, newTime);
+    //                 } else {
+    //                     isTradeRunning = false;
+    //                     placeTrade();
+    //                 }
+    //             } else {
+    //                 if (varObject.currentProfitAmount >= varObject.targetAmount) {
+    //                     // let newTime = (getRandomNumber(2, 3) * 60000 );
+    //                     let newTime = (getRandomNumber(1, 3) * 1000 );
+    //                     setTimer(newTime);
+    //                     setTimeout(() => {
+    //                         isTradeRunning = false;
+    //                         botRestart();
+    //                     }, newTime);
+    //                 } else {
+    //                     isTradeRunning = false;
+    //                     placeTrade();
+    //                 }
 
-                }
-                socket.send(JSON.stringify({msg_type: 'trade_closed',data: varObject}));
-            } else {
+    //             }
+    //             socket.send(JSON.stringify({msg_type: 'trade_closed',data: varObject}));
+    //         } else {
 
-                let expiryInSeconds = getSecondsRemaining(contract.date_expiry);
-                if(expiryInSeconds > 0){
-                    showProgressBar(expiryInSeconds, 'This trade will closed in ');
+    //             let expiryInSeconds = getSecondsRemaining(contract.date_expiry);
+    //             if(expiryInSeconds > 0){
+    //                 showProgressBar(expiryInSeconds, 'This trade will closed in ');
                 
-                    await showProgressBar(expiryInSeconds, 'This trade will closed in ');
+    //                 await showProgressBar(expiryInSeconds, 'This trade will closed in ');
     
-                    setTimeout(() => {
-                        fetchTradeDetails(varObject.lastTradeDetails.id);
-                    }, 1000);
-                }
+    //                 setTimeout(() => {
+    //                     fetchTradeDetails(varObject.lastTradeDetails.id);
+    //                 }, 1000);
+    //             }
                 
-            }
+    //         }
            
-        }
-    }
+    //     }
+    // }
+
+
+
+
+
+
+
 
     // if (wsResponse.msg_type === "proposal_open_contract") {
     //     // console.log('wsResponse: ', wsResponse);
